@@ -37,6 +37,7 @@ class Disc
         int getQSector(){return qSector;}
         int getQTrack(){return qTrack;}
         int getTotalSectors(){return qPlato*2*qSector*qTrack;}
+        int getSectorByte(){return SecBytes;}
         void makeSectorReserved(int p, int sf, int t, int s)
         {
             nPlato->makeSectorReserved(p,sf,t,s);

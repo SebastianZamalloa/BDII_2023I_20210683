@@ -1,8 +1,6 @@
 #include <iostream>
 #include <string>
-//#include "headers/Bloque_system.h"
-#include "headers/Disc.h"
-#include "headers/csv_file.h"
+#include "headers/Bloque.h"
 using namespace std;
 int main ()
 {
@@ -117,8 +115,9 @@ int main ()
         getline(reader,receptor);
         disco.insertData<string>("\n"+receptor);
         disco.makeSectorReserved(1,1,1,1);
-        while(getline(reader,receptor) && !reader.eof())
+        while(!reader.eof())
         {
+            getline(reader,receptor);
             disco.insertData<string>(receptor);
             cout<<receptor;
         }
@@ -134,12 +133,15 @@ int main ()
         if(*spaces == 0){break;}
         disco.printSector(1,1,1,*spaces);
     }*spaces = 1;
-    /*
+
+
     Bloque * directory;
+    mkdir("d:/UNSA/BD II/Disco - BD - V3/Bloques");
     int cap;
+    int cT = disco.getSectorByte()*disco.getTotalSectors();
     Bloque * temp;
-    cout<<"\nIngrese cuantos sectores x bloque necesita: ",cin>>cap;
-    for(int  i = 0; i<disco.getTotalSectors()/cap; i++)
+    cout<<"\nIngrese los bytes x bloque: ",cin>>cap;
+    for(int  i = 0; i<(cT/cap)+1; i++)
     {
         if(i == 0)
         {
@@ -152,12 +154,10 @@ int main ()
             temp = temp->nextBloque;
         }
     }
-    temp = directory;
-    for(int  i = 0; i<disco.getTotalSectors()/cap; i++)
+    for(int  i = 1; i<=disco.getTotalSectors(); i++)
     {
-        vector<int> list = disco.processValues(1,1,1,1+cap*(i));
-        temp->insertSector(list[0],list[1],list[2],list[3],disco.getQSector());
-        temp = temp->nextBloque;
+        vector<int> list = disco.processValues(1,1,1,i);
+        directory->insertSector(list[0],list[1],list[2],list[3]);
     }
     temp = directory;
     *spaces = -1;
@@ -170,7 +170,7 @@ int main ()
         temp->printBloque();
         temp = directory;
     }
-    delete directory;*/
+    delete directory;
     reader.close();
     remove("file.txt");
     delete spaces;
