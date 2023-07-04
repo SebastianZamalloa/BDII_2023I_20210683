@@ -1,1 +1,0 @@
-getline(schema,schatribute,'#');
