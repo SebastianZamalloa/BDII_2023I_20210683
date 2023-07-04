@@ -2,7 +2,6 @@
 #include <string>
 //#include "headers/Bloque_system.h"
 #include "headers/Disc.h"
-#include "headers/file_function.h"
 #include "headers/csv_file.h"
 using namespace std;
 int main ()
@@ -11,31 +10,96 @@ int main ()
 
     bool dynamic;
     string csvname;
-    cout<<"Ingrese el nombre del .csv (.txt u otros) a usar (Incluya la extension): ",cin>>csvname;
+    //cout<<"Ingrese el nombre del .csv (.txt u otros) a usar (Incluya la extension): ",cin>>csvname;
+    csvname = "titanic.csv";
     cout<<"Ingrese el modo de lectura ( 0 = estatico , 1 = dinamico ) : ",cin>>dynamic;
-
-    transform_csv("titanic.csv",dynamic);
-
-    int nRegist = 1;
-    while(nRegist != 0)
-    { 
-        cout<<"\nIngrese el numero de registro que desea analizar (Termine con 0): ",cin>>nRegist;
-        if(nRegist == 0)    break;
-        printRegist(nRegist,"schema.txt");
-        cout<<"\nCantidad de Bytes en el registro: "<<getBytes4EachRegist("schema.txt");
+    transform_csv(csvname,dynamic);
+    
+    int option = -1;
+    
+    while(option != 0)
+    {
+        cout<<"\nIngrese la opcion que necesite a nivel del file: \n1.Ver informacion de un registro\n2.Insertar registro\n3.Eliminar registro\nInserte: ",cin>>option;
+        if(option == 0)
+            break;
+        switch(option)
+        {
+            case 1:
+            {
+                int nRegist = -1;
+                while(nRegist != 0)
+                { 
+                    cout<<"\nIngrese el numero de registro que desea analizar (Termine con 0): ",cin>>nRegist;
+                    if(nRegist == 0)    break;
+                    printRegist(nRegist,"schema.txt",dynamic);
+                    cout<<"\nCantidad de Bytes en el registro: "<<getBytes4EachRegist("schema.txt",dynamic,nRegist);
+                }
+            }break;
+            case 2:
+            {
+                while(true)
+                {
+                    string result;
+                    int count = 0;
+                    ifstream schema("schema.txt");
+                    string schatribute;
+                    while(getline(schema,schatribute))
+                    {
+                        count++;
+                        istringstream eachAtribute(schatribute);
+                        string woword;
+                        getline(eachAtribute,woword,'#');
+                        string atribute = woword;
+                        getline(eachAtribute,woword,'#');
+                        cout<<"Ingrese el siguiente atributo \""<<atribute<<"\" ("<<woword<<"): ";;
+                        string r;
+                        if(woword == "str")
+                            getline(cin,r);
+                        else
+                        {
+                            cin>>r;
+                            cin.ignore();
+                        }
+                        if(getNatributes("schema.txt") == count)
+                            result+= r; 
+                        else
+                            result += r + "#";
+                    }
+                    cout<<transform_line(result,dynamic);
+                    insertRegist(transform_line(result,dynamic),"file.txt",dynamic);
+                    cout<<"\nIngrese 0 si quiere terminar: ",cin>>count;
+                    if(count == 0)
+                        break;
+                }
+                
+            }break;
+            case 3:
+            {
+                int count;
+                while(true)
+                {
+                    cout<<"\nIngrese la posicion de registro que quiere eliminar: ",cin>>count;
+                    if(count == 0)
+                        break;
+                    deleteRegist("file.txt",count,dynamic);
+                    cout<<"\nIngrese 0 si quiere terminar: ",cin>>count;
+                    if(count == 0)
+                        break;
+                }
+            }break;
+        }
     }
-    cout<<"\nCantidad de Bytes en el file: "<<getBytes4EachRegist("schema.txt")*891;
-    nRegist = 1;
-
+    cout<<"\nCantidad de Bytes en el file: "<<getFileBytes("file.txt");
     cout<<endl<<endl;
     
-    int * spaces = new int [3];
+    int * spaces = new int [4];
     int Plates, Tracks, Sectors; 
     cout<<"\nDISCO MAGNETICO\n";
     cout<<"\nPersonaliza tu disco :D\nIngrese la cantidad de Platos: ",cin>>spaces[0];
     cout<<"Ingrese la cantidad de Pistas por Superficie: ",cin>>spaces[1];
-    cout<<"Ingrese la cantidad de Sectores (7140 Bytes por sector) por Pista: ",cin>>spaces[2];
-    Disc disco(spaces[0],spaces[1],spaces[2]);
+    cout<<"Ingrese la cantidad de Sectores por Pista: ",cin>>spaces[2];
+    cout<<"Ingrese la cantidad de bytes por Sector: ",cin>>spaces[3];
+    Disc disco(spaces[0],spaces[1],spaces[2],spaces[3]);
     delete [] spaces;
     disco.metaDiscData();
     cout<<"\nHora de ingresar nuestros datos :D\n";
@@ -50,6 +114,8 @@ int main ()
             disco.insertData<string>(receptor);
             cout<<receptor;
         }cout<<"\nESQUEMA INGRESADO\n";
+        getline(reader,receptor);
+        disco.insertData<string>("\n"+receptor);
         disco.makeSectorReserved(1,1,1,1);
         while(getline(reader,receptor) && !reader.eof())
         {
@@ -105,5 +171,7 @@ int main ()
         temp = directory;
     }
     delete directory;*/
+    reader.close();
+    remove("file.txt");
     delete spaces;
 }

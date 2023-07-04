@@ -9,18 +9,19 @@ using namespace std;
 class Disc
 {
     protected:
+        int SecBytes;
         int qPlato;
         int qSector;
         int qTrack;
         Platter * nPlato = nullptr;
     public:
 
-        Disc(int platterQn, int TrackQn, int SectorQn):qPlato(platterQn),qTrack(TrackQn),qSector(SectorQn)
+        Disc(int platterQn, int TrackQn, int SectorQn,int bytes):qPlato(platterQn),qTrack(TrackQn),qSector(SectorQn),SecBytes(bytes)
         {
             std::cout<<"\n\nDISCO CREADO\n\n";
             do {
-                if(!nPlato){nPlato = new Platter(TrackQn,SectorQn,qPlato-platterQn+1);}
-                else{nPlato->setPlatter(new Platter(TrackQn,SectorQn,qPlato-platterQn+1));}
+                if(!nPlato){nPlato = new Platter(TrackQn,SectorQn,qPlato-platterQn+1,bytes);}
+                else{nPlato->setPlatter(new Platter(TrackQn,SectorQn,qPlato-platterQn+1,bytes));}
                 platterQn--;
             } while(platterQn > 0);
             createDisc(qPlato,TrackQn,SectorQn);
@@ -43,7 +44,7 @@ class Disc
         void metaDiscData()
         {
             cout<<"\n- 1 Disco\n- "<<qPlato<<" platos\n- "<<qTrack<<" pistas\n- "<<qSector<<" sectores";
-            cout<<"\n- Bytes por Sector: 7140\n- Sectores en total en el disco: "<<getTotalSectors()<<"\nCapacidad total del disco: "<<getTotalSectors()*7140<<endl;
+            cout<<"\n- Bytes por Sector: "<<SecBytes<<"\n- Sectores en total en el disco: "<<getTotalSectors()<<"\nCapacidad total del disco: "<<getTotalSectors()*SecBytes<<endl;
         }
         void printSector(int p, int sf, int t, int s, int counter = 1)
         {

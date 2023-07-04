@@ -10,8 +10,8 @@ class Platter
         Surface * Surface_1 = nullptr;
         Surface * Surface_2 = nullptr;
     public:
-        Platter(int TrackQn, int SectorQn, int n):PlatterNum(n){Surface_1 = new Surface(TrackQn,SectorQn); 
-        Surface_2 = new Surface(TrackQn,SectorQn);} 
+        Platter(int TrackQn, int SectorQn, int n, int bytes):PlatterNum(n){Surface_1 = new Surface(TrackQn,SectorQn,bytes); 
+        Surface_2 = new Surface(TrackQn,SectorQn,bytes);} 
         ~Platter(){delete nextPl; delete Surface_1; delete Surface_2;}
         void setPlatter(Platter * next)
         {

@@ -10,11 +10,11 @@ class Track
         Sector * nSector = nullptr;
         Track * nextTrack = nullptr;
     public:
-        Track(int SectorQn, int n):qSector(SectorQn),nTrack(n)
+        Track(int SectorQn, int n,int bytes):qSector(SectorQn),nTrack(n)
         {
             do {
-                if(!nSector){nSector = new Sector(1);}
-                else{nSector->setSector(new Sector(qSector-SectorQn+1));}
+                if(!nSector){nSector = new Sector(1,bytes);}
+                else{nSector->setSector(new Sector(qSector-SectorQn+1,bytes));}
                 SectorQn--;
             } while(SectorQn > 0);
         }

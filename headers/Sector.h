@@ -12,7 +12,7 @@ class Sector
         bool reserved;
         Sector * nextSct = nullptr;     
     public:
-        Sector(int n):nSector(n){limit = 7140;used = 0;reserved = false;}
+        Sector(int n, int _limit_):nSector(n){limit = _limit_;used = 0;reserved = false;}
         ~Sector(){delete nextSct;}
         void MakeReserved(int s)
         {   
@@ -58,7 +58,7 @@ class Sector
             else
             {
                 cout<<"Sector "<<s<<endl;
-                cout<<"- Plato "<<p<<"\n- Superficie "<<sf<<"\n- Pista "<<t<<"\n- Capacidad: 1024 bytes\n\n";
+                cout<<"- Plato "<<p<<"\n- Superficie "<<sf<<"\n- Pista "<<t<<"\n- Capacidad: "<<limit<<" bytes\n - Usado: "<<used<<"\n\n";
                 ifstream reader("d:/UNSA/BD II/Disco - BD - V3/Disco/Plato"+ to_string(p) +"/Superficie"+ to_string(sf) +"/Pista"+ to_string(t) +"/Sector"+ to_string(s) +".txt");
                 char c;
                 while(reader.get(c) && !reader.eof())

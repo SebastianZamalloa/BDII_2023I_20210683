@@ -8,11 +8,11 @@ class Surface
         int qTrack;
         Track * nTrack = nullptr;
     public:
-        Surface(int TrackQn,int SectorQn):qTrack(TrackQn)
+        Surface(int TrackQn,int SectorQn, int bytes):qTrack(TrackQn)
         {
             do {
-                if(!nTrack){nTrack = new Track(SectorQn,qTrack-TrackQn+1);}
-                else{nTrack->setTrack(new Track(SectorQn,qTrack-TrackQn+1));}
+                if(!nTrack){nTrack = new Track(SectorQn,qTrack-TrackQn+1,bytes);}
+                else{nTrack->setTrack(new Track(SectorQn,qTrack-TrackQn+1,bytes));}
                 TrackQn--;
             } while(TrackQn > 0);
         }
