@@ -44,6 +44,27 @@ int getNStrAtributes(string name)
     return counter;
 }
 
+int getNStrAtributesWB(string name, string bm)
+{
+    ifstream esquema(name);
+    string word;
+    int counter = 0;
+    int i = 0;
+    while(getline(esquema,word))
+    {
+        istringstream atribute(word);
+        string num;
+        getline(atribute,num,'#');getline(atribute,num,'#');
+        if(num == "str" && bm[i] == '0')
+        {
+            counter++;
+            getline(atribute,num,'#');
+        }
+        i++; 
+    }
+    return counter;
+}
+
 int getMaxStr(string name)
 {
     ifstream esquema(name);
@@ -61,7 +82,7 @@ int getMaxStr(string name)
                 max = stoi(num);
         }
     }
-    return to_string(max).length();
+    return to_string(max).length()+1;
 }
 
 int getHeadersByte(string name)
@@ -169,15 +190,17 @@ string transform_line(string word_, bool dynamic)
         }
         if(dynamic)
         {
-            for(int i = 0; i<getNStrAtributes("schema.txt"); i++)
+            int temp = 0;
+            for(int i = 0; i<getNStrAtributesWB("schema.txt",bitmap); i++)
             {
-                string len = to_string(offset.length() + static_var.length() + bitmap.length() + i*(2*getMaxStr("schema.txt")));
+                string len = to_string(offset.length() + static_var.length() + bitmap.length() + temp);
                 for(int j = 0; j<getMaxStr("schema.txt")-len.length(); j++)
                     len = "0" + len;
                 for(int j = 0; j<getMaxStr("schema.txt"); j++)
                     offset[i*(2*getMaxStr("schema.txt"))+j] = len[j];
+                temp += stoi(offset.substr(getMaxStr("schema.txt") + i*getMaxStr("schema.txt")*2,getMaxStr("schema.txt")));
             }
-        }    
+        }     
     return bitmap + offset + static_var + length_var;
 }
 
@@ -230,7 +253,6 @@ void transform_csv(string name, bool dynamic)
     file_.open("file.txt", fstream::app);
     string all_regist;
     int count = 0;
-    file_<<"\n";
 
     while(getline(titanic_,word_))
     {
@@ -306,13 +328,15 @@ void transform_csv(string name, bool dynamic)
         }
         if(dynamic)
         {
-            for(int i = 0; i<getNStrAtributes("schema.txt"); i++)
+            int temp = 0;
+            for(int i = 0; i<getNStrAtributesWB("schema.txt",bitmap); i++)
             {
-                string len = to_string(offset.length() + static_var.length() + bitmap.length() + i*(2*getMaxStr("schema.txt")));
+                string len = to_string(offset.length() + static_var.length() + bitmap.length() + temp);
                 for(int j = 0; j<getMaxStr("schema.txt")-len.length(); j++)
                     len = "0" + len;
                 for(int j = 0; j<getMaxStr("schema.txt"); j++)
                     offset[i*(2*getMaxStr("schema.txt"))+j] = len[j];
+                temp += stoi(offset.substr(getMaxStr("schema.txt") + i*getMaxStr("schema.txt")*2,getMaxStr("schema.txt")));
             }
         }    
         file_<<bitmap<<offset<<static_var<<length_var;
@@ -324,9 +348,40 @@ void transform_csv(string name, bool dynamic)
     remove("transformed.txt");
 }
 
-int getBytes4EachRegist(string name, bool dynamic, int nRegist = 0)
+int getBytes4EachRegist(string name, bool dynamic, int nRegist = 0, bool works = 0, string evaluate = "")
 {
     int count = 0;
+    if(works)
+    {
+        string bitmap = evaluate.substr(0,getNatributes(name));
+        ifstream s(name);
+        string sch;
+
+        int offset = getNatributes(name);
+
+        for(int i = 0;i<getNatributes(name);i++)
+        {
+            getline(s, sch);
+            if(bitmap[i]-'0' == 0)
+            {
+                istringstream eachAtribute(sch);
+                string woword;
+                getline(eachAtribute,woword,'#');getline(eachAtribute,woword,'#');
+                if(woword == "bool")
+                    count += 1;
+                else if(woword == "int64" || woword == "float64")
+                    count += 8;
+                else if(woword == "str")
+                {
+                    getline(eachAtribute,woword,'#');
+                    string cont = getLineFile("file.txt",nRegist).substr(offset+getMaxStr("schema.txt"),getMaxStr("schema.txt"));
+                    offset += getMaxStr("schema.txt")*2;
+                    count += stoi(cont) + getMaxStr("schema.txt")*2;
+                }
+            }
+        }
+    }
+
     if(!dynamic)
     {
         ifstream schema(name);
@@ -429,28 +484,28 @@ void insertRegist(string content, string name, bool dynamic)
     int i = 0;
     while(getline(titanic,word))
     {
+        cout<<endl<<word<<endl;
         count++;
         if(count == 0)
         {
+            istringstream look(word);
+            string line;
+            while(look>>line)
             {
-                istringstream look(word);
-                string line;
-                while(look>>line)
+                if(line != "")
                 {
-                    if(line != "")
-                    {
-                        num = stoi(line);
-                        while(look>>line)
-                            header += to_string(stoi(line)-4) + " ";
-                    }
-                }
-                int x = num;
-                while(x != 0)
-                {
-                    x -= getLineFile(name,i).size();
-                    i++;
+                    num = stoi(line);
+                    while(look>>line)
+                        header += to_string(stoi(line)-4) + " ";
                 }
             }
+            int x = num;
+            while(x != 0)
+            {
+                x -= getLineFile(name,i).size();
+                i++;
+            }
+            cout<<i<<endl;
         }
         else if(count == i)
         {
@@ -486,10 +541,7 @@ void insertRegist(string content, string name, bool dynamic)
 void deleteRegist(string name, int num,bool dynamic)
 {
     if(num > getNatributes(name)-1)
-    {
-        cout<<"\nEliminacion invalida\n";
-        return;
-    }
+        num = getNatributes(name);
     ifstream titanic(name);
     string word;
     string every;
@@ -507,7 +559,11 @@ void deleteRegist(string name, int num,bool dynamic)
             while(look>>line)
             {
                 if(stoi(line) == num)
+                {
                     cout<<"\nEliminacion invalida\n";
+                    return;
+                }
+                header += to_string(stoi(line)+4) + " ";
             }
         }
         else if(count == num)
@@ -523,6 +579,18 @@ void deleteRegist(string name, int num,bool dynamic)
                     x += getBytes4EachRegist("schema.txt",dynamic,i);
                 }
                 x+= header.size() + 1 + to_string(x).size();
+                istringstream look(header);
+                string line;
+                header = "";
+                while(look>>line)
+                {
+                    if(stoi(line) == num)
+                    {
+                        cout<<"\nEliminacion invalida\n";
+                        return;
+                    }
+                    header += to_string(stoi(line)+to_string(x).size()) + " ";
+                }
                 header += to_string(x) + " ";
                 every += "\n";
             }
@@ -546,4 +614,135 @@ void deleteRegist(string name, int num,bool dynamic)
     titanic.close();
     remove(name.c_str());
     rename("file2.txt",name.c_str());
+}
+
+int getIDdynamicRegist(string regist, string name)
+{
+    ifstream esquema(name);
+    string word;
+    int counter = getNatributes(name);
+    int i = 0;
+    while(getline(esquema,word))
+    {
+        if(regist[i] == '0')
+        {
+            istringstream atribute(word);
+            string num;
+            getline(atribute,num,'#');getline(atribute,num,'#');
+            if(num == "str")
+            {
+                counter += getMaxStr(name)*2;
+                getline(atribute,num,'#');
+            }
+        }
+        i++;    
+    }
+    return stoi(regist.substr(counter,8));
+}
+
+int countStrBitmap(string bitmap, string name)
+{
+    ifstream esquema(name);
+    string word;
+    int counter = 0;
+    int i = 0;
+    while(getline(esquema,word))
+    {
+        if(bitmap[i] == '0')
+        {
+            istringstream atribute(word);
+            string num;
+            getline(atribute,num,'#');getline(atribute,num,'#');
+            if(num == "str")
+            {
+                counter++;
+                getline(atribute,num,'#');
+            }
+        }
+        i++;    
+    }
+    return counter;
+}
+
+int getBytes4RegistWB(string bitmap, string name)
+{
+    ifstream esquema(name);
+    string word;
+    int counter = getNatributes(name);
+    int i = 0;
+    int header = getNatributes(name);
+    while(getline(esquema,word))
+    {
+        if(bitmap[i] == '0')
+        {
+            istringstream atribute(word);
+            string num;
+            getline(atribute,num,'#');getline(atribute,num,'#');
+            if(num == "int64" || num == "float64")
+                counter += 8;
+            else if(num == "bool")
+                counter += 1;
+            else if(num == "str")
+            {
+                counter += getMaxStr(name)*2;
+                getline(atribute,num,'#');
+                counter += stoi(bitmap.substr(header+getMaxStr(name),getMaxStr(name)));
+                header += getMaxStr(name)*2;
+            }
+        }
+        i++;    
+    }
+    
+    return counter;
+}
+
+string transform_dynamic_to_normal(string content,string name)
+{
+
+    string result;
+
+    ifstream esquema(name);
+    string word;
+
+    string bitmap = content.substr(0,getNatributes(name));
+    string offsets = content.substr(getNatributes(name),getNStrAtributesWB(name,bitmap)*2*getMaxStr(name));
+    string rest = content.substr(getNatributes(name)+getNStrAtributesWB(name,bitmap)*2*getMaxStr(name),content.size()-(getNatributes(name)+getNStrAtributesWB(name,bitmap)*2*getMaxStr(name)));
+    
+    int header = 0;
+    int nums = 0;
+    int i = 0;
+    while(getline(esquema,word))
+    {
+        if(bitmap[i] == '0')
+        {
+            istringstream atribute(word);
+            string num;
+            getline(atribute,num,'#');getline(atribute,num,'#');
+            if(num == "int64")
+            {
+                result += to_string(stoi(rest.substr(nums,8)));
+                nums += 8;
+            }
+            else if(num == "float64")
+            {
+                result += to_string(stof(rest.substr(nums,8)));
+                nums += 8;
+            }
+            else if(num == "bool")
+            {
+                result += to_string(stoi(rest.substr(nums,1)));
+                nums += 1;
+            }
+            else if(num == "str")
+            {
+                result += "\"";
+                result += content.substr(stoi(offsets.substr(header,getMaxStr(name))),stoi(offsets.substr(header+getMaxStr(name),getMaxStr(name))));
+                header += getMaxStr(name)*2;
+                result += "\"";
+            }
+        }
+        if(i+1 != getNatributes(name))
+            result += ",";
+        i++;    
+    }return result;
 }
