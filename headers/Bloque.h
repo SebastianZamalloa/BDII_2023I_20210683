@@ -24,23 +24,22 @@ class Bloque
         void insertInBlock(T data, int nB)
         {
             if(nB>1)
-            {
-                cout<<nB<<endl;
                 nextBloque->insertInBlock(data,nB-1);
-            }
             else
             {
                 for(int i = 0; i<sectors.size();i++)
                 {
-                    if(used+data.size()<=capacity)
+                    vector<int>cords = discRef->processValues(1,1,1,sectors[i]);
+                    ifstream reader("d:/UNSA/BD II/Disco - BD - V3/Disco/Plato"+ to_string(cords[0]) +"/Superficie"+ to_string(cords[1]) +"/Pista"+ to_string(cords[2]) +"/Sector"+ to_string(cords[3]) +".txt");
+                    string line;
+                    reader>>line;
+                    if(line.size()+data.size()<=qSec)
                     {
+                        used += data.size();
                         ofstream writer;
-                        vector<int>cords = discRef->processValues(1,1,1,sectors[i]);
-                        writer.open("d:/UNSA/BD II/Disco - BD - V3/Disco/Plato"+ to_string(cords[0]) +"/Superficie"+ to_string(cords[1]) +"/Pista"+ to_string(cords[2]) +"/Sector"+ to_string(cords[3]) +"_temp.txt");
+                        writer.open("d:/UNSA/BD II/Disco - BD - V3/Disco/Plato"+ to_string(cords[0]) +"/Superficie"+ to_string(cords[1]) +"/Pista"+ to_string(cords[2]) +"/Sector"+ to_string(cords[3]) +".txt", fstream::app);
                         writer<<data;
                         writer.close();
-                        remove(("d:/UNSA/BD II/Disco - BD - V3/Disco/Plato"+ to_string(cords[0]) +"/Superficie"+ to_string(cords[1]) +"/Pista"+ to_string(cords[2]) +"/Sector"+ to_string(cords[3]) +".txt").c_str());
-                        rename(("d:/UNSA/BD II/Disco - BD - V3/Disco/Plato"+ to_string(cords[0]) +"/Superficie"+ to_string(cords[1]) +"/Pista"+ to_string(cords[2]) +"/Sector"+ to_string(cords[3]) +"_temp.txt").c_str(),("d:/UNSA/BD II/Disco - BD - V3/Disco/Plato"+ to_string(cords[0]) +"/Superficie"+ to_string(cords[1]) +"/Pista"+ to_string(cords[2]) +"/Sector"+ to_string(cords[3]) +".txt").c_str());
                         return;
                     }
                 }

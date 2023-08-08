@@ -119,6 +119,7 @@ string getLineFile(string name, int nLine)
 
 string transform_line(string word_, bool dynamic)
 {
+    int max = getMaxStr("schema.txt");
     string bitmap;
     string offset;
     string static_var;
@@ -173,9 +174,9 @@ string transform_line(string word_, bool dynamic)
                         if(stoi(woword) >= atribute.length())
                         {
                             length_var += atribute;
-                            for(int i = 0; i<getMaxStr("schema.txt"); i++)
+                            for(int i = 0; i<max; i++)
                                 offset += "-";
-                            for(int i = 0; i<getMaxStr("schema.txt")-to_string(atribute.length()).length(); i++)
+                            for(int i = 0; i<max-to_string(atribute.length()).length(); i++)
                                 offset += "0";
                             offset += to_string(atribute.length());
                         }
@@ -194,11 +195,11 @@ string transform_line(string word_, bool dynamic)
             for(int i = 0; i<getNStrAtributesWB("schema.txt",bitmap); i++)
             {
                 string len = to_string(offset.length() + static_var.length() + bitmap.length() + temp);
-                for(int j = 0; j<getMaxStr("schema.txt")-len.length(); j++)
+                for(int j = 0; j<max-len.length(); j++)
                     len = "0" + len;
-                for(int j = 0; j<getMaxStr("schema.txt"); j++)
-                    offset[i*(2*getMaxStr("schema.txt"))+j] = len[j];
-                temp += stoi(offset.substr(getMaxStr("schema.txt") + i*getMaxStr("schema.txt")*2,getMaxStr("schema.txt")));
+                for(int j = 0; j<max; j++)
+                    offset[i*(2*max)+j] = len[j];
+                temp += stoi(offset.substr(max + i*max*2,max));
             }
         }     
     return bitmap + offset + static_var + length_var;
@@ -206,6 +207,7 @@ string transform_line(string word_, bool dynamic)
 
 void transform_csv(string name, bool dynamic)
 {
+    int max = getMaxStr("schema.txt");
     ifstream titanic(name);
     string word;
     ofstream file;
@@ -311,9 +313,9 @@ void transform_csv(string name, bool dynamic)
                         if(stoi(woword) >= atribute.length())
                         {
                             length_var += atribute;
-                            for(int i = 0; i<getMaxStr("schema.txt"); i++)
+                            for(int i = 0; i<max; i++)
                                 offset += "-";
-                            for(int i = 0; i<getMaxStr("schema.txt")-to_string(atribute.length()).length(); i++)
+                            for(int i = 0; i<max-to_string(atribute.length()).length(); i++)
                                 offset += "0";
                             offset += to_string(atribute.length());
                         }
@@ -332,11 +334,11 @@ void transform_csv(string name, bool dynamic)
             for(int i = 0; i<getNStrAtributesWB("schema.txt",bitmap); i++)
             {
                 string len = to_string(offset.length() + static_var.length() + bitmap.length() + temp);
-                for(int j = 0; j<getMaxStr("schema.txt")-len.length(); j++)
+                for(int j = 0; j<max-len.length(); j++)
                     len = "0" + len;
-                for(int j = 0; j<getMaxStr("schema.txt"); j++)
-                    offset[i*(2*getMaxStr("schema.txt"))+j] = len[j];
-                temp += stoi(offset.substr(getMaxStr("schema.txt") + i*getMaxStr("schema.txt")*2,getMaxStr("schema.txt")));
+                for(int j = 0; j<max; j++)
+                    offset[i*(2*max)+j] = len[j];
+                temp += stoi(offset.substr(max + i*max*2,max));
             }
         }    
         file_<<bitmap<<offset<<static_var<<length_var;
@@ -350,6 +352,7 @@ void transform_csv(string name, bool dynamic)
 
 int getBytes4EachRegist(string name, bool dynamic, int nRegist = 0, bool works = 0, string evaluate = "")
 {
+    int max = getMaxStr("schema.txt");
     int count = 0;
     if(works)
     {
@@ -374,9 +377,9 @@ int getBytes4EachRegist(string name, bool dynamic, int nRegist = 0, bool works =
                 else if(woword == "str")
                 {
                     getline(eachAtribute,woword,'#');
-                    string cont = getLineFile("file.txt",nRegist).substr(offset+getMaxStr("schema.txt"),getMaxStr("schema.txt"));
-                    offset += getMaxStr("schema.txt")*2;
-                    count += stoi(cont) + getMaxStr("schema.txt")*2;
+                    string cont = getLineFile("file.txt",nRegist).substr(offset+max,max);
+                    offset += max*2;
+                    count += stoi(cont) + max*2;
                 }
             }
         }
@@ -430,9 +433,9 @@ int getBytes4EachRegist(string name, bool dynamic, int nRegist = 0, bool works =
                 else if(woword == "str")
                 {
                     getline(eachAtribute,woword,'#');
-                    string cont = getLineFile("file.txt",nRegist).substr(offset+getMaxStr("schema.txt"),getMaxStr("schema.txt"));
-                    offset += getMaxStr("schema.txt")*2;
-                    count += stoi(cont) + getMaxStr("schema.txt")*2;
+                    string cont = getLineFile("file.txt",nRegist).substr(offset+max,max);
+                    offset += max*2;
+                    count += stoi(cont) + max*2;
                 }
             }
         }

@@ -59,7 +59,7 @@ int main ()
 {
     bool full = 1;
     bool dynamic = 1;
-    string csvname = "titanic.csv";
+    string csvname = "movies.csv";
     transform_csv(csvname,dynamic);
 
     cout<<"\nCantidad de Bytes en el file: "<<getFileBytes("file.txt");
@@ -123,14 +123,7 @@ int main ()
             regist_direction temp(getIDdynamicRegist(receptor,"schema.txt"),(nSEC/capSec)+1,nSEC-(nSEC/capSec)*capSec,1);
             bpt.insert(temp);
         }
-        string tree = exportLeafDataToString(bpt);
-        istringstream superReader(tree);
-        string superLine;
-        while(getline(superReader,superLine))
-        {
-            vector<int>sec = {0,0,0,0};
-            directory->insertInBlock(superLine,18);
-        }
+        
     }
     cout<<endl;
     bpt.bpt_print();

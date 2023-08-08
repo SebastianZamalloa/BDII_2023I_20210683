@@ -76,9 +76,6 @@ class Disc
             else
             {
                 vector<int> list = {p,sf,t,s};
-                for(auto i:list)
-                    cout<<i<<" ";
-                cout<<endl;
                 return list;
             }
         }
