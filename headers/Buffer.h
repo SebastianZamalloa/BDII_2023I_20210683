@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vector>
 #include "Bloque.h"
+#include "BPlusTree.h"
 
 class Frame
 {
@@ -284,7 +285,7 @@ class BufferManager
                 cout<<"Registro no encontrado\n";
 
         }
-        void insertRegist(string content, bool dynamic, int k = 0)
+        void insertRegist(string content, bool dynamic, BPlusTree<regist_direction>& bpt, int k = 0)
         {
             int block = -1;
             int parameter[4];
@@ -340,7 +341,7 @@ class BufferManager
                     }
                     tmp = tmp->nextBloque;
                 }
-                cout<<"\nHOLA\n";
+                cout<<"\nREGISTRO INGRESADO\n";
                 int f = upFrame(block);
                 frames[f].pinCount++;
                 for(int i = 0; i<frames[f].information.size();i++)
@@ -353,88 +354,49 @@ class BufferManager
                         frames[f].dirty[i] = 1;
                         frames[f].reDisc(directory);
                         frames[f].pinCount--;
+                        regist_direction tmp = {getIDdynamicRegist(content,"schema.txt"),block,i+1,1};
+                        bpt.insert(tmp);
                         return;
                     }
                 }
-                insertRegist(content,dynamic,block);
+                insertRegist(content,dynamic,bpt,block);
             }
         }
-        void deleteRegist(int id, bool dynamic)
+        void deleteRegist(int id, bool dynamic, BPlusTree<regist_direction>&bpt)
         {
-            int block;
-            int sector;
-            bool waos = 0;
-            for(int i = 1; i<=getNBloqs();i++)
-            {
-                int f = upFrame(i);
-                cout<<"\nBloque "<<i<<endl;
-                for(int j = 0; j<frames[f].information.size();j++)
-                {
-                    if(frames[f].information.size() == 0)
-                        break;
-                    cout<<"\nSector "<<frames[f].sectors[j]<<endl;
-                    if(i == 1 && j == 0)
-                        j++;
-                    int x = 0;
-                    if(frames[f].information[j][x] == ' ')
-                        while(frames[f].information[j][x] == ' ' && frames[f].information[j][x] != '\0' && x < directory->qSec)
-                            x++;
-                    int k = getBytes4RegistWB(frames[f].information[j].substr(x,(getNatributes("schema.txt")+2*getMaxStr("schema.txt")*countStrBitmap(frames[f].information[j].substr(x,getNatributes("schema.txt")),"schema.txt"))),"schema.txt");
-                    while(x + k < directory->qSec)
-                    {
-                        if(frames[f].information[j][x] == ' ')
-                            while(frames[f].information[j][x] == ' ' && frames[f].information[j][x] != '\0' && x < directory->qSec)
-                                x++;
-                        if(x >= frames[f].information[j].size())
-                            break;
-                        k = getBytes4RegistWB(frames[f].information[j].substr(x,(getNatributes("schema.txt")+2*getMaxStr("schema.txt")*countStrBitmap(frames[f].information[j].substr(x,getNatributes("schema.txt")),"schema.txt"))),"schema.txt");
-                        string r = frames[f].information[j].substr(x,k);
-                        cout<<r<<endl;
-                        cout<<getIDdynamicRegist(r,"schema.txt")<<endl;
-                        if(id == getIDdynamicRegist(r,"schema.txt"))
-                        {
-                            block = f;
-                            sector = j;
-                            waos = 1;
-                            cout<<block<<"  "<<sector<<"  "<<endl;
-                            break;
-                        }
-                        x += k;
-                        cout<<x<<endl;
-                    }
-                    if(waos)
-                        break;
-                }
-                if(waos)
-                    break;
-            }
-            
-            frames[block].pinCount++;
+            regist_direction tmp = {id,0,0,0};
+            Node<regist_direction>* nodo = bpt.searchNode(tmp);
+            int bn = nodo->item->bloq_num;
+            int sn = nodo->item->sec_num-1;
+            cout<<"\nBloque "<<bn<<endl;
+            int f = upFrame(bn);
+            cout<<"\nSector "<<frames[f].sectors[sn]<<endl;
+            frames[f].pinCount++;
             string sect;
             int x = 0;
-            if(frames[block].information[sector][x] == ' ')
+            if(frames[f].information[sn][x] == ' ')
             {
-                while(frames[block].information[sector][x] == ' ' && x < directory->qSec)
+                while(frames[f].information[sn][x] == ' ' && x < directory->qSec)
                 {
                     sect += " ";
                     x++;
                 }
             }
-            int k = getBytes4RegistWB(frames[block].information[sector].substr(x,(getNatributes("schema.txt")+2*getMaxStr("schema.txt")*countStrBitmap(frames[block].information[sector].substr(x,getNatributes("schema.txt")),"schema.txt"))),"schema.txt");
+            int k = getBytes4RegistWB(frames[f].information[sn].substr(x,(getNatributes("schema.txt")+2*getMaxStr("schema.txt")*countStrBitmap(frames[f].information[sn].substr(x,getNatributes("schema.txt")),"schema.txt"))),"schema.txt");
             while(x + k < directory->qSec)
             {
-                if(frames[block].information[sector][x] == ' ')
+                if(frames[f].information[sn][x] == ' ')
                 {
-                    while(frames[block].information[sector][x] == ' ' && frames[block].information[sector][x] != '\0' && x < directory->qSec)
+                    while(frames[f].information[sn][x] == ' ' && frames[f].information[sn][x] != '\0' && x < directory->qSec)
                     {
                         sect += " ";
                         x++;
                     }
                 }
-                if(x >= frames[block].information[sector].size())
+                if(x >= frames[f].information[sn].size())
                     break;
-                k = getBytes4RegistWB(frames[block].information[sector].substr(x,(getNatributes("schema.txt")+2*getMaxStr("schema.txt")*countStrBitmap(frames[block].information[sector].substr(x,getNatributes("schema.txt")),"schema.txt"))),"schema.txt");
-                string r = frames[block].information[sector].substr(x,k);
+                k = getBytes4RegistWB(frames[f].information[sn].substr(x,(getNatributes("schema.txt")+2*getMaxStr("schema.txt")*countStrBitmap(frames[f].information[sn].substr(x,getNatributes("schema.txt")),"schema.txt"))),"schema.txt");
+                string r = frames[f].information[sn].substr(x,k);
                 if(id != getIDdynamicRegist(r,"schema.txt"))
                     sect += r; 
                 else
@@ -443,7 +405,7 @@ class BufferManager
                     for(int i = 0; i<r.size(); i++)
                         str += " ";
                     sect += str;
-                    str = "\n" + to_string(frames[block].pageID) + "," + to_string(sector) + "," + to_string(x) + "," + to_string(str.size());
+                    str = "\n" + to_string(frames[f].pageID) + "," + to_string(sn) + "," + to_string(x) + "," + to_string(str.size());
                     int f = upFrame(1);
                     frames[f].information[0] += str;
                     frames[f].dirty[0] = 1;
@@ -451,10 +413,11 @@ class BufferManager
                 }
                 x += k;
             }
-            cout<<"hola";
-            frames[block].information[sector] = sect;
-            frames[block].dirty[sector] = 1;
-            frames[block].reDisc(directory);
-            frames[block].pinCount--;
+            cout<<"\nREGISTRO ELIMINADO\n";
+            frames[f].information[sn] = sect;
+            frames[f].dirty[sn] = 1;
+            frames[f].reDisc(directory);
+            frames[f].pinCount--;
+            bpt.remove(tmp);
         }
 };

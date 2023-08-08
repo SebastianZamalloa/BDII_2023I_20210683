@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
+#include <chrono>
 #include "headers/Buffer.h"
-#include "headers/BPlusTree.h"
 using namespace std;
 
 string exportLeafDataToString(BPlusTree<regist_direction>& tree) {
@@ -139,7 +139,13 @@ int main ()
     {
         cout<<"\n\nIngrese el numero de sector que desea imprimir (0 para terminar): ",cin>>*spaces;
         if(*spaces == 0){break;}
+        auto start = std::chrono::high_resolution_clock::now();
         disco.printSector(1,1,1,*spaces);
+        auto end = chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::milli> float_ms = end - start;
+        auto int_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        cin.ignore();
+        cout<<"\nTIEMPO DE EJECUCIÓN: "<<float_ms.count()<<endl;
     }*spaces = 1;
 
     BufferManager manager(5,directory,1);
@@ -194,7 +200,7 @@ int main ()
                     }
                     cout<<result<<endl;
                     cout<<transform_line(result,dynamic)<<endl;
-                    manager.insertRegist(transform_line(result,dynamic),dynamic);
+                    manager.insertRegist(transform_line(result,dynamic),dynamic,bpt);
                     cout<<"\nIngrese 0 si quiere terminar: ",cin>>count;
                     if(count == 0)
                         break;
@@ -209,7 +215,7 @@ int main ()
                     cout<<"\nIngrese la posicion de registro que quiere eliminar: ",cin>>count;
                     if(count == 0)
                         break;
-                    manager.deleteRegist(count,dynamic);
+                    manager.deleteRegist(count,dynamic,bpt);
                 }
             }break;
         }

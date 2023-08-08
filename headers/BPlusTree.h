@@ -185,6 +185,10 @@ public:
         return BPlusTreeSearch(this->root, data) != nullptr;
     }
 
+    Node<T>* searchNode(T data) { 
+        return BPlusTreeSearch(this->root, data);
+    }
+
     int find_index(T* arr, T data, int len){
         int index = 0;
         for(int i=0; i<len; i++){
