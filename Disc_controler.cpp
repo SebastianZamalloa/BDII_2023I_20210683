@@ -59,8 +59,11 @@ int main ()
 {
     bool full = 1;
     bool dynamic = 1;
+    bool file_charger = 0;
+
     string csvname = "movies.csv";
-    transform_csv(csvname,dynamic);
+    if(file_charger)
+        transform_csv(csvname,dynamic);
 
     cout<<"\nCantidad de Bytes en el file: "<<getFileBytes("file.txt");
     cout<<endl<<endl;
@@ -156,9 +159,7 @@ int main ()
                 { 
                     cout<<"\nIngrese el numero de registro que desea analizar (Termine con 0): ",cin>>nRegist;
                     if(nRegist == 0)    break;
-                    /*
-                    manager.look4Regist(nRegist);*/
-
+                    manager.look4Regist(nRegist);
                 }
             }break;
             case 2:
@@ -215,6 +216,7 @@ int main ()
     }
     delete directory;
     reader.close();
-    remove("file.txt");
+    
+    //remove("file.txt");
     delete spaces;
 }
