@@ -67,6 +67,7 @@ class BufferManager
 {
     protected:
         int qFrames;
+        int clockPointer = 0;
         Bloque* directory;
         vector<Frame> frames;
         int method;
@@ -104,6 +105,18 @@ class BufferManager
             Bloque * tmp = directory;
             for(int i = 1; i<blockNum; i++)
                 tmp = tmp->nextBloque;
+            if(method == 3)
+            {
+                for(int i = 0; i<frames.size();i++)
+                {
+                    if(frames[i].pageID == blockNum)
+                    {
+                        frames[i].extra = 1;
+                        return i;
+                    }
+                }
+
+            }
             for(int i = 0; i<frames.size();i++)
             {
                 if(frames[i].pageID == 0)
@@ -112,10 +125,14 @@ class BufferManager
                     switch (method)
                     {
                         case 1:
+                        case 2:
                         {
                             frames[i].extra = qFrames;
                         }break;
-                        
+                        case 3:
+                        {
+                            frames[i].extra = 1;
+                        }break;
                         default:
                             break;
                     }  
@@ -129,18 +146,26 @@ class BufferManager
                     switch (method)
                     {
                         case 1:
+                        case 2:
                         {
                             frames[i].extra = qFrames;
+                                for(int j = 0; j<frames.size(); j++)
+                                    if(frames[j].pageID != blockNum)
+                            frames[j].extra--;
                         }break;
-                        
+                        case 3:
+                        {
+                            frames[i].extra = 1;
+                        }break;
                         default:
                             break;
                     }
-                        
-                    for(int j = 0; j<frames.size(); j++)
-                        if(frames[j].pageID != blockNum)
-                            frames[j].extra--;
+                    
                     return i;
+                }
+                else if(frames[i].pageID != blockNum && method == 3)
+                {
+                    frames[i].extra = 0;
                 }
             }
             switch (method)
@@ -175,7 +200,36 @@ class BufferManager
                             frames[j].extra--;
                     return fpos;
                 }break;
-                
+                case 2:
+                {
+                    int max = frames[0].extra;
+                    int fpos;
+                    for(int i = 0; i<frames.size();i++)
+                    {
+                        if(frames[i].extra >= max && frames[i].pinCount == 0)
+                        {
+                            max = frames[i].extra;
+                            fpos = i;
+                        }
+                    }
+                    frames[fpos].backFrame(directory);
+                    frames[fpos].rechargeFrame(tmp);
+                    switch (method)
+                    {
+                        case 1:
+                        {
+                            frames[fpos].extra = qFrames;
+                        }break;
+                        
+                        default:
+                            break;
+                    }
+                        
+                    for(int j = 0; j<frames.size(); j++)
+                        if(frames[j].pageID != blockNum)
+                            frames[j].extra--;
+                    return fpos;
+                }break;
                 default:
                     break;
             }

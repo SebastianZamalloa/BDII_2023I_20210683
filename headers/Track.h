@@ -27,13 +27,13 @@ class Track
                 nSector->MakeReserved(s);
         }
         template<typename T>
-        bool insertTrackData(T d,string direction)
+        bool insertTrackData(T d,vector<int>&cords)
         {
-            string nd = direction + "/Pista" + to_string(nTrack);
-            if(!nSector->insertData<T>(d,nd))
+            cords[2] = nTrack;
+            if(!nSector->insertData<T>(d,cords))
             {
                 if(nextTrack)
-                    if(nextTrack->insertTrackData<T>(d,direction))
+                    if(nextTrack->insertTrackData<T>(d,cords))
                         return true;
                 return false;
             }      

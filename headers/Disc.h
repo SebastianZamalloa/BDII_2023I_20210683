@@ -31,7 +31,6 @@ class Disc
             std::cout<<"\nMurio el DISCO\n\n";
             delete nPlato;
             system("rmdir /s /q Disco");
-            system("rmdir /s /q Bloques");
         }
         int getQPlate(){return qPlato;}
         int getQSector(){return qSector;}
@@ -83,6 +82,22 @@ class Disc
                 return list;
             }
         }
+        int inverseValues(int p, int sf, int t, int s)
+        {
+            if(p > qPlato)
+            {
+                cout<<"\nIMPOSIBLE\n";
+                return 0;
+            }
+            else if(p > 1)
+                return inverseValues(p-1,sf+2,t,s);
+            else if(sf > 1)
+                return inverseValues(p,sf-1,t+qTrack,s);
+            else if(t > 1)
+                return inverseValues(p,sf,t-1,s+qSector);
+            else
+                return s;
+        }
         void createDisc(int qPlatter, int qTrack, int qSector)
         {
             string pathOG = "d:/UNSA/BD II/Disco - BD - V3/Disco";
@@ -115,9 +130,9 @@ class Disc
             }
         }
         template<typename T>
-        bool insertData(T a)
+        bool insertData(T a, vector<int>&cords)
         {
-            if(!nPlato->insertPlatterData<T>(a,"d:/UNSA/BD II/Disco - BD - V3/Disco"))
+            if(!nPlato->insertPlatterData<T>(a,cords))
                 return false;
             return true;    
         }

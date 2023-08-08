@@ -26,14 +26,15 @@ class Sector
             return nextSct;
         }
         template<typename T>
-        bool insertData(T _data_, string direction)
+        bool insertData(T _data_, vector<int>&cords)
         {
             string d; d += _data_;
-            string nd = direction + "/Sector" + to_string(nSector) + ".txt";
+            cords[3] = nSector;
+            string nd = "d:/UNSA/BD II/Disco - BD - V3/Disco/Plato"+ to_string(cords[0]) +"/Superficie"+ to_string(cords[1]) +"/Pista"+ to_string(cords[2]) +"/Sector"+ to_string(cords[3]) +".txt";
             if(limit == used || reserved || d.length() > limit-used)
             {
                 if(nextSct)
-                    if(nextSct->insertData<T>(_data_,direction))
+                    if(nextSct->insertData<T>(_data_,cords))
                         return true;
                 return false;
             }

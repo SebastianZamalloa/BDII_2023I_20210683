@@ -1,16 +1,65 @@
 #include <iostream>
 #include <string>
 #include "headers/Buffer.h"
+#include "headers/BPlusTree.h"
 using namespace std;
+
+string exportLeafDataToString(BPlusTree<regist_direction>& tree) {
+    ostringstream oss;
+    Node<regist_direction>* cursor = tree.getroot();
+    while (cursor != nullptr && !cursor->is_leaf) {
+        cursor = cursor->children[0];
+    }
+
+    bool firstItem = true;
+    while (cursor != nullptr) {
+        for (size_t i = 0; i < cursor->size; ++i) {
+            if (!firstItem) {
+                oss << "\n";
+            }
+            oss << to_string(cursor->item[i].id) <<"#"<< to_string(cursor->item[i].bloq_num) <<"#"<< to_string(cursor->item[i].sec_num) <<"#"<< to_string(cursor->item[i].space);
+            firstItem = false;
+        }
+        cursor = cursor->children[cursor->size];
+    }
+
+    return oss.str();
+}
+BPlusTree<regist_direction> buildTreeFromExportedData(string& exportedData, size_t degree) {
+    istringstream iss(exportedData);
+    string line;
+    BPlusTree<regist_direction> tree(degree);
+
+    while (getline(iss, line)) {
+        istringstream line_stream(line);
+        regist_direction item;
+        string ph;
+        while (line_stream >> ph) 
+        {
+            istringstream elementstream(ph);
+            string word;
+            for(int i = 0; i<4; i++)
+            {
+                getline(elementstream,word,'#');
+                switch(i)
+                {
+                    case 0:{item.id = stoi(word);}break;
+                    case 1:{item.bloq_num = stoi(word);}break;
+                    case 2:{item.sec_num = stoi(word);}break;
+                    case 3:{item.space = stoi(word);}break;
+                }                
+            }
+            tree.insert(item);
+        }
+    }
+    return tree;
+}
+
 int main ()
 {
     bool full = 1;
-
-    bool dynamic;
-    string csvname;
-    //cout<<"Ingrese el nombre del .csv (.txt u otros) a usar (Incluya la extension): ",cin>>csvname;
-    csvname = "titanic.csv";
-    cout<<"Ingrese el modo de lectura ( 0 = estatico , 1 = dinamico ) : ",cin>>dynamic;
+    bool dynamic = 1;
+    string csvname = "titanic.csv";
     transform_csv(csvname,dynamic);
 
     cout<<"\nCantidad de Bytes en el file: "<<getFileBytes("file.txt");
@@ -24,7 +73,33 @@ int main ()
     cout<<"Ingrese la cantidad de Sectores por Pista: ",cin>>spaces[2];
     cout<<"Ingrese la cantidad de bytes por Sector: ",cin>>spaces[3];
     Disc disco(spaces[0],spaces[1],spaces[2],spaces[3]);
+    int byteSec = spaces[3];
     delete [] spaces;
+
+    BPlusTree<regist_direction> bpt(10);
+
+    Bloque * directory;
+    int cap;
+    int cT = disco.getSectorByte()*disco.getTotalSectors();
+    Bloque * temp;
+    cout<<"\nIngrese los bytes x bloque: ",cin>>cap;
+    for(int  i = 0; i<(cT/cap)+1; i++)
+    {
+        cout<<i<<endl;
+        if(i == 0)
+        {
+            directory = new Bloque(cap,i+1,disco.getSectorByte(),&disco);
+            temp = directory;
+        }
+        else
+        {
+            temp->nextBloque = new Bloque(cap,i+1,disco.getSectorByte(),&disco);
+            temp = temp->nextBloque;
+        }
+    }
+    for(int  i = 1; i<=disco.getTotalSectors(); i++)
+        directory->insertSector(i);
+    int capSec = cap/byteSec;
     disco.metaDiscData();
     cout<<"\nHora de ingresar nuestros datos :D\n";
 
@@ -35,16 +110,30 @@ int main ()
     {
         while(getline(readerSchema,receptor) && !readerSchema.eof())
         {
-            disco.insertData<string>(receptor);
+            vector<int>sec = {0,0,0,0};
+            disco.insertData<string>(receptor,sec);
             cout<<receptor;
         }cout<<"\nESQUEMA INGRESADO\n";
         disco.makeSectorReserved(1,1,1,1);
         while(getline(reader,receptor))
         {
-            disco.insertData<string>(receptor);
-            cout<<receptor;
+            vector<int>sec = {0,0,0,0};
+            disco.insertData<string>(receptor, sec);
+            int nSEC = disco.inverseValues(sec[0],sec[1],sec[2],sec[3]);
+            regist_direction temp(getIDdynamicRegist(receptor,"schema.txt"),(nSEC/capSec)+1,nSEC-(nSEC/capSec)*capSec,1);
+            bpt.insert(temp);
+        }
+        string tree = exportLeafDataToString(bpt);
+        istringstream superReader(tree);
+        string superLine;
+        while(getline(superReader,superLine))
+        {
+            vector<int>sec = {0,0,0,0};
+            directory->insertInBlock(superLine,18);
         }
     }
+    cout<<endl;
+    bpt.bpt_print();
     cout<<"\nDB Titanic ingresada\n";
 
     disco.metaDiscData();
@@ -57,40 +146,6 @@ int main ()
         disco.printSector(1,1,1,*spaces);
     }*spaces = 1;
 
-    Bloque * directory;
-    int cap;
-    int cT = disco.getSectorByte()*disco.getTotalSectors();
-    Bloque * temp;
-    cout<<"\nIngrese los bytes x bloque: ",cin>>cap;
-    for(int  i = 0; i<(cT/cap)+1; i++)
-    {
-        if(i == 0)
-        {
-            directory = new Bloque(cap,i+1,disco.getSectorByte(),&disco);
-            temp = directory;
-        }
-        else
-        {
-            temp->nextBloque = new Bloque(cap,i+1,disco.getSectorByte(),&disco);
-            temp = temp->nextBloque;
-        }
-    }
-
-    for(int  i = 1; i<=disco.getTotalSectors(); i++)
-        directory->insertSector(i);
-
-    temp = directory;
-    *spaces = -1;
-    /*
-    while(*spaces != 0)
-    {
-        cout<<"\nIngrese el numero de Bloque que desea imprimir: ",cin>>*spaces;
-        if(*spaces == 0){break;}
-        for(int i = 0; i<*spaces-1;i++)
-            temp = temp->nextBloque;
-        temp->printBloque();
-        temp = directory;
-    }*/
     BufferManager manager(5,directory,1);
     int option = -1;
     
@@ -108,7 +163,9 @@ int main ()
                 { 
                     cout<<"\nIngrese el numero de registro que desea analizar (Termine con 0): ",cin>>nRegist;
                     if(nRegist == 0)    break;
-                    manager.look4Regist(nRegist);
+                    /*
+                    manager.look4Regist(nRegist);*/
+
                 }
             }break;
             case 2:

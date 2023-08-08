@@ -26,9 +26,9 @@ class Surface
             nTrack->print(p,sf,t,s,1);
         }
         template<typename T>
-        bool insertSurfaceData(T d, string direction)
+        bool insertSurfaceData(T d, vector<int>&cords)
         {
-            if(nTrack->insertTrackData<T>(d,direction))
+            if(nTrack->insertTrackData<T>(d,cords))
                 return true;
             return false;
         }

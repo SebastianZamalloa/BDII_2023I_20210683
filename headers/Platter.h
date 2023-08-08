@@ -34,15 +34,17 @@ class Platter
             
         }
         template<typename T>
-        bool insertPlatterData(T d,string direction)
+        bool insertPlatterData(T d,vector<int>&cords)
         {
-            string nD = direction + "/Plato" + to_string(PlatterNum);
-            if(!Surface_1->insertSurfaceData<T>(d,nD + "/Superficie1"))
-            {       
-                if(!Surface_2->insertSurfaceData<T>(d,nD + "/Superficie2"))
+            cords[0] = PlatterNum;
+            cords[1] = 1;
+            if(!Surface_1->insertSurfaceData<T>(d,cords))
+            {   
+                cords[1] = 2;
+                if(!Surface_2->insertSurfaceData<T>(d,cords))
                 {
                     if(nextPl)
-                        if(nextPl->insertPlatterData<T>(d,direction))
+                        if(nextPl->insertPlatterData<T>(d,cords))
                             return true;
                     return false;
                 }
