@@ -123,7 +123,8 @@ int main ()
             vector<int>sec = {0,0,0,0};
             disco.insertData<string>(receptor, sec);
             int nSEC = disco.inverseValues(sec[0],sec[1],sec[2],sec[3]);
-            regist_direction temp(getIDdynamicRegist(receptor,"schema.txt"),(nSEC/capSec)+1,nSEC-(nSEC/capSec)*capSec,1);
+            vector<int>nCords = directory->getBloqNum(nSEC);
+            regist_direction temp(getIDdynamicRegist(receptor,"schema.txt"),nCords[0],nCords[1],1);
             bpt.insert(temp);
         }
         
@@ -165,7 +166,7 @@ int main ()
                 { 
                     cout<<"\nIngrese el numero de registro que desea analizar (Termine con 0): ",cin>>nRegist;
                     if(nRegist == 0)    break;
-                    manager.look4Regist(nRegist);
+                    manager.look4Regist(nRegist,bpt);
                 }
             }break;
             case 2:

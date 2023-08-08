@@ -236,57 +236,50 @@ class BufferManager
             }
             return 0;
         }
-        void look4Regist(int id)
+        void look4Regist(int id, BPlusTree<regist_direction>&bpt)
         {
             bool waos = 0;
-            for(int i = 1; i<=getNBloqs();i++)
+            regist_direction tmp = {id,0,0,0};
+            Node<regist_direction>* nodo = bpt.searchNode(tmp);
+            int bn = nodo->item->bloq_num;
+            int sn = nodo->item->sec_num-1;
+            cout<<"\nBloque "<<bn<<endl;
+            int f = upFrame(bn);
+            cout<<"\nSector "<<frames[f].sectors[sn]<<endl;
+            frames[f].pinCount++;
+            string sect;
+            int x = 0;
+            if(frames[f].information[sn][x] == ' ')
+                while(frames[f].information[sn][x] == ' ' && x < directory->qSec)
+                    x++;
+            int k = getBytes4RegistWB(frames[f].information[sn].substr(x,(getNatributes("schema.txt")+2*getMaxStr("schema.txt")*countStrBitmap(frames[f].information[sn].substr(x,getNatributes("schema.txt")),"schema.txt"))),"schema.txt");
+            while(x + k < directory->qSec)
             {
-                int f = upFrame(i);
-                cout<<"\nBloque "<<i<<endl;
-                for(int j = 0; j<frames[f].information.size();j++)
-                {
-                    if(frames[f].information.size() == 0)
-                        break;
-                    cout<<"\nSector "<<frames[f].sectors[j]<<endl;
-                    if(i == 1 && j == 0)
-                        j++;
-                    int x = 0;
-                    if(frames[f].information[j][x] == ' ')
-                        while(frames[f].information[j][x] == ' ' && frames[f].information[j][x] != '\0' && x < directory->qSec)
-                            x++;
-                    int k = getBytes4RegistWB(frames[f].information[j].substr(x,(getNatributes("schema.txt")+2*getMaxStr("schema.txt")*countStrBitmap(frames[f].information[j].substr(x,getNatributes("schema.txt")),"schema.txt"))),"schema.txt");
-                    while(x + k < directory->qSec)
-                    {
-                        if(frames[f].information[j][x] == ' ')
-                            while(frames[f].information[j][x] == ' ' && frames[f].information[j][x] != '\0' && x < directory->qSec)
-                                x++;
-                        if(x >= frames[f].information[j].size())
-                            break;
-                        k = getBytes4RegistWB(frames[f].information[j].substr(x,(getNatributes("schema.txt")+2*getMaxStr("schema.txt")*countStrBitmap(frames[f].information[j].substr(x,getNatributes("schema.txt")),"schema.txt"))),"schema.txt");
-                        string r = frames[f].information[j].substr(x,k);
-                        if(id == getIDdynamicRegist(r,"schema.txt"))
-                        {
-                            waos = 1;
-                            vector<int> cords = directory->discRef->processValues(1,1,1,frames[f].sectors[j]);
-                            cout<<"\nRegistro ID "<<id<<"\n\n-Bloque "<<i;
-                            cout<<"\n-Plato "<<cords[0]<<"\n-Superficie "<<cords[1]<<"\n-Pista "<<cords[2]<<"\n-Sector: "<<cords[3]<<"\n -Peso: "<<r.size()<<"\n\n";
-                            cout<<transform_dynamic_to_normal(r,"schema.txt")<<endl;
-                            break;
-                        }
-                        x += k;
-                    }
-                    if(waos)
-                        break;
-                }
-                if(waos)
+                if(frames[f].information[sn][x] == ' ')
+                    while(frames[f].information[sn][x] == ' ' && frames[f].information[sn][x] != '\0' && x < directory->qSec)
+                        x++;
+                if(x >= frames[f].information[sn].size())
                     break;
+                k = getBytes4RegistWB(frames[f].information[sn].substr(x,(getNatributes("schema.txt")+2*getMaxStr("schema.txt")*countStrBitmap(frames[f].information[sn].substr(x,getNatributes("schema.txt")),"schema.txt"))),"schema.txt");
+                string r = frames[f].information[sn].substr(x,k);
+                if(id == getIDdynamicRegist(r,"schema.txt"))
+                {
+                    waos = 1;
+                    vector<int> cords = directory->discRef->processValues(1,1,1,frames[f].sectors[sn]);
+                    cout<<"\nRegistro ID "<<id<<"\n\n-Bloque "<<bn;
+                    cout<<"\n-Plato "<<cords[0]<<"\n-Superficie "<<cords[1]<<"\n-Pista "<<cords[2]<<"\n-Sector: "<<cords[3]<<"\n -Peso: "<<r.size()<<"\n\n";
+                    cout<<transform_dynamic_to_normal(r,"schema.txt")<<endl;
+                    break;
+                }
+                x += k;
             }
             if(!waos)
                 cout<<"Registro no encontrado\n";
-
+            cout<<"\n"<<bn<<" "<<sn<<"\n";
         }
         void insertRegist(string content, bool dynamic, BPlusTree<regist_direction>& bpt, int k = 0)
         {
+            auto start = std::chrono::high_resolution_clock::now();
             int block = -1;
             int parameter[4];
             int s = upFrame(1);
@@ -328,6 +321,12 @@ class BufferManager
                 frames[f].dirty[parameter[1]] = 1;
                 frames[f].reDisc(directory);
                 frames[f].pinCount--;
+                regist_direction tmp = {getIDdynamicRegist(content,"schema.txt"),block,parameter[1],1};
+                bpt.insert(tmp);
+                auto end = chrono::high_resolution_clock::now();
+                std::chrono::duration<double, std::milli> float_ms = end - start;
+                auto int_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+                cout<<"\nTIEMPO DE EJECUCIÓN: "<<float_ms.count()<<endl;
             }
             else
             {
@@ -356,14 +355,20 @@ class BufferManager
                         frames[f].pinCount--;
                         regist_direction tmp = {getIDdynamicRegist(content,"schema.txt"),block,i+1,1};
                         bpt.insert(tmp);
+                        auto end = chrono::high_resolution_clock::now();
+                        std::chrono::duration<double, std::milli> float_ms = end - start;
+                        auto int_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+                        cout<<"\nTIEMPO DE EJECUCIÓN: "<<float_ms.count()<<endl;
                         return;
                     }
                 }
                 insertRegist(content,dynamic,bpt,block);
             }
+            
         }
         void deleteRegist(int id, bool dynamic, BPlusTree<regist_direction>&bpt)
         {
+            auto start = std::chrono::high_resolution_clock::now();
             regist_direction tmp = {id,0,0,0};
             Node<regist_direction>* nodo = bpt.searchNode(tmp);
             int bn = nodo->item->bloq_num;
@@ -419,5 +424,9 @@ class BufferManager
             frames[f].reDisc(directory);
             frames[f].pinCount--;
             bpt.remove(tmp);
+            auto end = chrono::high_resolution_clock::now();
+            std::chrono::duration<double, std::milli> float_ms = end - start;
+            auto int_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+            cout<<"\nTIEMPO DE EJECUCIÓN: "<<float_ms.count()<<endl;
         }
 };

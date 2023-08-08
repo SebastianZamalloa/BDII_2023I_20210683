@@ -20,6 +20,21 @@ class Bloque
         Bloque(int cap, int num_, int bys, Disc* ref):capacity(cap),num(num_),qSec(bys),discRef(ref){}
         ~Bloque(){delete nextBloque;}
         int getNum(){return num;}
+        vector<int> getBloqNum(int nSector)
+        {
+            vector<int> tmp = {num,0};
+            for(int i = 0; i<sectors.size(); i++)
+            {
+                if(i == nSector)
+                {
+                    tmp[1] = i;
+                    return tmp;
+                }
+            }
+            if(!nextBloque)
+                return {0,0};
+            return nextBloque->getBloqNum(nSector);
+        }
         template<typename T>
         void insertInBlock(T data, int nB)
         {
